@@ -198,10 +198,13 @@ document.getElementById('menuBtn').onclick=()=>document.getElementById('nav').cl
  if(!Array.isArray(read(KEYS.cart,[])))write(KEYS.cart,[]);
  renderAll();
 })();
-</script>
  <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-  import { getDatabase } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+  import {
+    getDatabase,
+    ref,
+    onValue
+  } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCcQNuhx2KiFOOkcZrHNADFaGqeE_Ippn4",
@@ -216,7 +219,11 @@ document.getElementById('menuBtn').onclick=()=>document.getElementById('nav').cl
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  console.log("DON’ES conectado a Firebase");
+  const productosRef = ref(db, "productos");
+
+  onValue(productosRef, (snapshot) => {
+    console.log("Firebase actualizado:", snapshot.val());
+  });
  </script>
 </body>
 </html>
