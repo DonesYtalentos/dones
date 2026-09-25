@@ -58,7 +58,19 @@ const clothingCats=['Todos','Deportiva','Urbana','Pantalones','Conjuntos','Remer
 let shoeFilter='Todos', clothingFilter='Todos', adminType='ropa', adminPreview=[];
 
 function read(key,fallback){try{const x=JSON.parse(localStorage.getItem(key));return x??fallback}catch{return fallback}}
-function write(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true}catch(e){return false}}
+function write(key,value){
+  try{
+    localStorage.setItem(key,JSON.stringify(value));
+
+    if(window.firebaseSyncWrite){
+      window.firebaseSyncWrite(key,value);
+    }
+
+    return true;
+  }catch(e){
+    return false;
+  }
+}
 function validProduct(p,type){return p&&typeof p==='object'&&typeof p.id==='string'&&p.id&&p.type===type&&typeof p.name==='string'&&p.name.trim()&&Number.isFinite(Number(p.price))&&Array.isArray(p.sizes)&&Array.isArray(p.images)}
 function loadProducts(){return read(KEYS.products,[]).filter(p=>validProduct(p,'zapatilla'))}
 function loadClothing(){return read(KEYS.clothing,[]).filter(p=>validProduct(p,'ropa'))}
@@ -203,6 +215,7 @@ document.getElementById('menuBtn').onclick=()=>document.getElementById('nav').cl
   import {
     getDatabase,
     ref,
+    set,
     onValue
   } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
 
@@ -219,11 +232,46 @@ document.getElementById('menuBtn').onclick=()=>document.getElementById('nav').cl
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  const productosRef = ref(db, "productos");
+  // Guardar productos de la tienda en Firebase
+  window.firebaseSyncWrite = function(key, value) {
+    if (key === "dones_products_clean_v5") {
+      set(ref(db, "productos"), value)
+        .catch(error => console.error("Error guardando productos:", error));
+    }
 
-  onValue(productosRef, (snapshot) => {
-    console.log("Firebase actualizado:", snapshot.val());
+    if (key === "dones_clothing_clean_v1") {
+      set(ref(db, "ropa"), value)
+        .catch(error => console.error("Error guardando ropa:", error));
+    }
+  };
+
+  // Escuchar cambios en productos
+  onValue(ref(db, "productos"), (snapshot) => {
+    if (snapshot.exists()) {
+      localStorage.setItem(
+        "dones_products_clean_v5",
+        JSON.stringify(snapshot.val())
+      );
+
+      if (typeof renderAll === "function") {
+        renderAll();
+      }
+    }
   });
- </script>
+
+  // Escuchar cambios en ropa
+  onValue(ref(db, "ropa"), (snapshot) => {
+    if (snapshot.exists()) {
+      localStorage.setItem(
+        "dones_clothing_clean_v1",
+        JSON.stringify(snapshot.val())
+      );
+
+      if (typeof renderAll === "function") {
+        renderAll();
+      }
+    }
+  });
+</script>
 </body>
 </html>
