@@ -153,13 +153,29 @@ async function processFiles(files){
  return out
 }
 function showNotice(msg,type='ok'){const n=document.getElementById('adminNotice');if(!n)return;n.textContent=msg;n.className='notice show '+type;setTimeout(()=>n.className='notice',3500)}
-function isAdmin(){return sessionStorage.getItem(KEYS.session)==='1'}
+function isAdmin(){
+  return !!window.firebaseAdminUser;
+}
 function openAdmin(){if(isAdmin())renderAdmin();else renderLogin();document.getElementById('adminModal').classList.add('open')}
 function closeAdmin(){document.getElementById('adminModal').classList.remove('open')}
 function renderLogin(){
  document.getElementById('adminBox').innerHTML=`<div class="login"><div class="admin-head"><h2>Admin</h2><button class="x" id="adminClose">×</button></div><div id="loginNotice" class="notice"></div><form id="loginForm"><div class="field"><label>Usuario</label><input id="user" autocomplete="username" required></div><div class="field"><label>Contraseña</label><input id="pass" type="password" autocomplete="current-password" required></div><button class="btn">INGRESAR</button></form></div>`;
- document.getElementById('adminClose').onclick=closeAdmin;document.getElementById('loginForm').onsubmit=e=>{e.preventDefault();if(document.getElementById('user').value==='admin'&&document.getElementById('pass').value==='Dones2026!'){sessionStorage.setItem(KEYS.session,'1');renderAdmin()}else{const n=document.getElementById('loginNotice');n.textContent='Usuario o contraseña incorrectos.';n.className='notice show err'}};
-}
+ document.getElementById('adminClose').onclick=closeAdmin;
+document.getElementById('loginForm').onsubmit=async e=>{
+  e.preventDefault();
+
+  const email=document.getElementById('user').value;
+  const password=document.getElementById('pass').value;
+  const n=document.getElementById('loginNotice');
+
+  try{
+    await window.firebaseLogin(email,password);
+    renderAdmin();
+  }catch(error){
+    n.textContent='Correo o contraseña incorrectos.';
+    n.className='notice show err';
+  }
+};
 function renderAdmin(){
  document.getElementById('adminBox').innerHTML=`<div class="admin-head"><h2>Panel Admin</h2><div><button class="btn" id="logout">Cerrar sesión</button><button class="x" id="adminClose">×</button></div></div>
  <div id="adminNotice" class="notice"></div>
@@ -214,11 +230,17 @@ document.getElementById('menuBtn').onclick=()=>document.getElementById('nav').cl
  <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
   import {
-    getDatabase,
-    ref,
-    set,
-    onValue
-  } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+  getDatabase,
+  ref,
+  set,
+  onValue
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCcQNuhx2KiFOOkcZrHNADFaGqeE_Ippn4",
@@ -232,6 +254,17 @@ document.getElementById('menuBtn').onclick=()=>document.getElementById('nav').cl
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
+   const auth = getAuth(app);
+
+window.firebaseAuth = auth;
+
+window.firebaseLogin = function(email, password) {
+  return signInWithEmailAndPassword(auth, email, password);
+};
+
+onAuthStateChanged(auth, (user) => {
+  window.firebaseAdminUser = user;
+});
 
   // Guardar productos de la tienda en Firebase
   window.firebaseSyncWrite = function(key, value) {
