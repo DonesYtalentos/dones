@@ -62,12 +62,13 @@ function write(key,value){
   try{
     localStorage.setItem(key,JSON.stringify(value));
 
-    if(window.firebaseSyncWrite){
+    if(window.firebaseSyncWrite && window.firebaseAdminUser){
       window.firebaseSyncWrite(key,value);
     }
 
     return true;
   }catch(e){
+    console.error(e);
     return false;
   }
 }
