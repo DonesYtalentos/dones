@@ -283,31 +283,27 @@ onAuthStateChanged(auth, (user) => {
 
   // Escuchar cambios en productos
   onValue(ref(db, "productos"), (snapshot) => {
-    if (snapshot.exists()) {
-      localStorage.setItem(
-        "dones_products_clean_v5",
-        JSON.stringify(snapshot.val())
-      );
+  localStorage.setItem(
+    "dones_products_clean_v5",
+    JSON.stringify(snapshot.exists() ? snapshot.val() : [])
+  );
 
-      if (typeof renderAll === "function") {
-        renderAll();
-      }
-    }
-  });
+  if (typeof renderAll === "function") {
+    renderAll();
+  }
+});
 
   // Escuchar cambios en ropa
   onValue(ref(db, "ropa"), (snapshot) => {
-    if (snapshot.exists()) {
-      localStorage.setItem(
-        "dones_clothing_clean_v1",
-        JSON.stringify(snapshot.val())
-      );
+  localStorage.setItem(
+    "dones_clothing_clean_v1",
+    JSON.stringify(snapshot.exists() ? snapshot.val() : [])
+  );
 
-      if (typeof renderAll === "function") {
-        renderAll();
-      }
-    }
-  });
+  if (typeof renderAll === "function") {
+    renderAll();
+  }
+});
 </script>
 </body>
 </html>
