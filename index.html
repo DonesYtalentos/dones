@@ -185,7 +185,7 @@ function renderAdmin(){
  <form id="productForm"><div class="form-grid">
  <div class="field"><label>Tipo de producto</label><select id="type"><option value="ropa">Ropa</option><option value="zapatilla">Zapatilla</option></select></div>
  <div class="field"><label>Nombre</label><input id="pname" required></div>
- <div class="field"><label>Precio</label><input id="price" type="number" min="0" step="1" required></div>
+ <div class="field"><label>Precio</label><input id="price" type="text" inputmode="numeric" placeholder="40000" required>
  <div class="field"><label>Categoría</label><select id="category"></select></div>
  <div class="field"><label>Talles (separados por coma)</label><input id="sizes" placeholder="S, M, L, XL"></div>
  <div class="field"><label>Imágenes</label><input id="images" type="file" accept="image/*" multiple></div>
@@ -202,7 +202,7 @@ function setupAdminForm(){
  setCats();type.onchange=()=>{adminType=type.value;setCats();adminPreview=[];preview.innerHTML='';files.value='';};
  files.onchange=async()=>{adminPreview=await processFiles(files.files);preview.innerHTML=adminPreview.map(x=>`<img src="${x}" alt="">`).join('');};
  document.getElementById('productForm').onsubmit=async e=>{
-  e.preventDefault();const t=type.value,name=document.getElementById('pname').value.trim(),price=Number(document.getElementById('price').value),category=cat.value,sizes=document.getElementById('sizes').value.split(',').map(x=>x.trim()).filter(Boolean),offer=document.getElementById('offer').checked;
+  e.preventDefault();const t=type.value,name=document.getElementById('pname').value.trim(),price=Number(document.getElementById('price').value.replace(/\D/g,'')),category=cat.value,sizes=document.getElementById('sizes').value.split(',').map(x=>x.trim()).filter(Boolean),offer=document.getElementById('offer').checked;
   if(!name||!Number.isFinite(price)||price<0||!category){showNotice('Completá los datos requeridos.','err');return}
   if(!adminPreview.length){showNotice('Seleccioná al menos una imagen válida.','err');return}
   const p={id:makeId(t),type:t,name,price,category,sizes,images:[...adminPreview],offer};
